@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>🛡️ Admin: {{ session['user_name'] }} &nbsp;|&nbsp; <a href="/logout">Logout</a></div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+<!-- SEARCH BAR -->
+  <div class="admin-search-bar">
+    <form method="GET" action="/admin/search" class="search-form">
+      <div class="search-wrap">
+        <input type="text" name="q" placeholder="🔍 Search patients or doctors...">
+        <button type="submit">Search</button>
+      </div>
+    </form>
+  </div>
+  <!-- EXPORT BAR -->
+  <div class="export-bar">
+    <h2>🛡️ Admin Control Panel</h2>
+    <a href="/admin/export" class="export-btn">💾 Export All Data to Excel</a>
+  </div>
+
+  <div class="dash-container">
+
+    <!-- STATS -->
+    <div class="admin-stats">
+      <div class="stat-card">
+        <h2>{{ patients|length }}</h2>
+        <p>👤 Total Patients</p>
+      </div>
+      <div class="stat-card">
+        <h2>{{ doctors|length }}</h2>
+        <p>🩺 Total Doctors</p>
+      </div>
+      <div class="stat-card">
+        <h2>{{ appointments|length }}</h2>
+        <p>📅 Total Appointments</p>
+      </div>
+      <div class="stat-card">
+        <h2>{{ offers|length }}</h2>
+        <p>🎁 Total Offers</p>
+      </div>
+    </div>
+
+    <!-- PATIENTS TABLE -->
+    <div class="dash-card full-width">
+      <h2>👤 All Patients</h2>
+      {% if patients %}
+        <table class="appt-table">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+          {% for p in patients %}
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>{{ p.name }}</td>
+              <td>{{ p.email }}</td>
+              <td>{{ p.age or '—' }}</td>
+              <td>{{ p.phone or '—' }}</td>
+              <td>
+                <a href="/admin/delete_patient/{{ p.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Delete this patient?')">
+                   🗑️ Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No patients registered yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- DOCTORS TABLE -->
+    <div class="dash-card full-width">
+      <h2>🩺 All Doctors</h2>
+      <div style="margin-bottom: 20px;">
+        <h3 style="color:#003366; margin-bottom:12px;">➕ Add New Doctor</h3>
+        <form method="POST" action="/admin/add_doctor" class="offer-form">
+          <input type="text"     name="name"           placeholder="Doctor Name" required>
+          <input type="email"    name="email"          placeholder="Email" required>
+          <input type="password" name="password"       placeholder="Password" required>
+          <input type="text"     name="specialization" placeholder="Specialization" required>
+          <button type="submit">➕ Add Doctor</button>
+        </form>
+      </div>
+      {% if doctors %}
+        <table class="appt-table">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Specialization</th>
+            <th>Action</th>
+          </tr>
+          {% for d in doctors %}
+            <tr>
+              <td>{{ d.id }}</td>
+              <td>Dr. {{ d.name }}</td>
+              <td>{{ d.email }}</td>
+              <td>{{ d.specialization or '—' }}</td>
+              <td>
+                <a href="/admin/delete_doctor/{{ d.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Delete this doctor?')">
+                   🗑️ Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No doctors registered yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- APPOINTMENTS TABLE -->
+    <div class="dash-card full-width">
+      <h2>📅 All Appointments</h2>
+      {% if appointments %}
+        <table class="appt-table">
+          <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          {% for a in appointments %}
+            <tr>
+              <td>{{ a.id }}</td>
+              <td>{{ a.patient.name }}</td>
+              <td>Dr. {{ a.doctor.name }}</td>
+              <td>{{ a.date }}</td>
+              <td><span class="badge {{ a.status.lower() }}">{{ a.status }}</span></td>
+              <td>
+                {% if a.status == 'Pending' %}
+                  <a href="/admin/update_appointment/{{ a.id }}/Confirmed" class="btn-confirm">✅</a>
+                  <a href="/admin/update_appointment/{{ a.id }}/Cancelled" class="btn-cancel">❌</a>
+                {% else %}
+                  <a href="/admin/delete_appointment/{{ a.id }}"
+                     class="btn-cancel"
+                     onclick="return confirm('Delete this appointment?')">🗑️</a>
+                {% endif %}
+              </td>
+            </tr> 
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No appointments yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- OFFERS MANAGEMENT -->
+    <div class="dash-card full-width">
+      <h2>🎁 Manage Health Offers</h2>
+      <form method="POST" action="/admin/add_offer" class="offer-form">
+        <input type="text" name="title"       placeholder="Offer Title (e.g. Full Body Checkup)" required>
+        <input type="text" name="description" placeholder="Description (e.g. Includes 20+ tests)" required>
+        <input type="text" name="discount"    placeholder="Discount (e.g. 30%)" required>
+        <input type="text" name="icon"        placeholder="Icon Emoji (e.g. 🏥)" value="🏥">
+        <button type="submit">➕ Add Offer</button>
+      </form>
+      <br>
+      {% if offers %}
+        <table class="appt-table">
+          <tr>
+            <th>Icon</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Discount</th>
+            <th>Action</th>
+          </tr>
+          {% for offer in offers %}
+            <tr>
+              <td>{{ offer.icon }}</td>
+              <td>{{ offer.title }}</td>
+              <td>{{ offer.description }}</td>
+              <td><span class="badge confirmed">{{ offer.discount }} OFF</span></td>
+              <td>
+                <a href="/admin/delete_offer/{{ offer.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Delete this offer?')">
+                   🗑️ Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No offers added yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- CHARTS -->
+    <div class="dash-card">
+      <h2>📊 Appointment Status</h2>
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="dash-card">
+      <h2>👥 Users Overview</h2>
+      <canvas id="usersChart"></canvas>
+    </div>
+    <div class="dash-card full-width">
+      <h2>📅 Appointments Per Doctor</h2>
+      <canvas id="doctorChart"></canvas>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Pending', 'Confirmed', 'Cancelled'],
+        datasets: [{
+          data: [
+            {{ appointments | selectattr('status', 'equalto', 'Pending')   | list | length }},
+            {{ appointments | selectattr('status', 'equalto', 'Confirmed') | list | length }},
+            {{ appointments | selectattr('status', 'equalto', 'Cancelled') | list | length }}
+          ],
+          backgroundColor: ['#fff4e0', '#e0fff0', '#ffeaea'],
+          borderColor:     ['#b06000', '#2d7a4f', '#e63946'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+
+    const usersCtx = document.getElementById('usersChart').getContext('2d');
+    new Chart(usersCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Patients', 'Doctors'],
+        datasets: [{
+          label: 'Total Users',
+          data: [{{ patients|length }}, {{ doctors|length }}],
+          backgroundColor: ['rgba(0,51,102,0.8)', 'rgba(230,57,70,0.8)'],
+          borderColor:     ['#003366', '#e63946'],
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    const doctorCtx = document.getElementById('doctorChart').getContext('2d');
+    new Chart(doctorCtx, {
+      type: 'bar',
+      data: {
+        labels: [{% for d in doctors %}'Dr. {{ d.name }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+          label: 'Appointments',
+          data: [{% for d in doctors %}{{ d.appointments|length }}{% if not loop.last %},{% endif %}{% endfor %}],
+          backgroundColor: 'rgba(45,122,79,0.8)',
+          borderColor: '#2d7a4f',
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  </script>
+
+</body>
+</html>

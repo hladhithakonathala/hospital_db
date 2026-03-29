@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical History | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      {% if view_only %}
+        <a href="/doctor/dashboard">← Back to Dashboard</a>
+      {% else %}
+        <a href="/patient/dashboard">← Back to Dashboard</a>
+      {% endif %}
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="dash-container">
+
+    <!-- PATIENT INFO -->
+    <div class="dash-card full-width">
+      <div class="patient-info-bar">
+        <div class="patient-avatar-big">
+          {{ patient.name[0].upper() }}
+        </div>
+        <div class="patient-info-text">
+          <h2>{{ patient.name }}</h2>
+          <p>📧 {{ patient.email }}</p>
+          <p>📞 {{ patient.phone or '—' }} &nbsp;|&nbsp; 🎂 Age: {{ patient.age or '—' }}</p>
+        </div>
+        <div class="patient-info-stats">
+          <div class="info-stat">
+            <h3>{{ history|length }}</h3>
+            <p>Total Records</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if not view_only %}
+    <!-- ADD RECORD FORM -->
+    <div class="dash-card full-width">
+      <h2>➕ Add Medical Record</h2>
+      <form method="POST" action="/patient/add_medical_history" class="medical-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>📅 Date</label>
+            <input type="date" name="date" required>
+          </div>
+          <div class="form-group">
+            <label>👨‍⚕️ Doctor Name</label>
+            <input type="text" name="doctor" placeholder="e.g. Dr. Smith" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🔬 Diagnosis</label>
+            <input type="text" name="diagnosis" placeholder="e.g. Hypertension" required>
+          </div>
+          <div class="form-group">
+            <label>💊 Treatment</label>
+            <input type="text" name="treatment" placeholder="e.g. Prescribed medication" required>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label>📝 Additional Notes</label>
+          <textarea name="notes" placeholder="Any additional notes..." rows="3"></textarea>
+        </div>
+        <button type="submit">➕ Add Record</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- MEDICAL HISTORY TIMELINE -->
+    <div class="dash-card full-width">
+      <h2>📋 Medical History Records</h2>
+      {% if history %}
+        <div class="timeline">
+          {% for record in history %}
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <div>
+                    <h3>{{ record.diagnosis }}</h3>
+                    <p class="timeline-meta">👨‍⚕️ {{ record.doctor }} &nbsp;|&nbsp; 📅 {{ record.date }}</p>
+                  </div>
+                  {% if not view_only %}
+                    <a href="/patient/delete_medical_history/{{ record.id }}"
+                       class="btn-cancel"
+                       onclick="return confirm('Delete this record?')">
+                       🗑️
+                    </a>
+                  {% endif %}
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-detail">
+                    <span class="detail-label">💊 Treatment</span>
+                    <span class="detail-value">{{ record.treatment }}</span>
+                  </div>
+                  {% if record.notes %}
+                    <div class="timeline-detail">
+                      <span class="detail-label">📝 Notes</span>
+                      <span class="detail-value">{{ record.notes }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No medical records found.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

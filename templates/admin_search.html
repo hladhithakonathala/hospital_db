@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search | GVP Care Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      <a href="/admin/dashboard">← Back to Dashboard</a>
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dash-container">
+
+    <!-- SEARCH BAR -->
+    <div class="dash-card full-width">
+      <h2>🔍 Search Patients & Doctors</h2>
+      <form method="GET" action="/admin/search" class="search-form">
+        <div class="search-wrap">
+          <input type="text"
+                 name="q"
+                 value="{{ query }}"
+                 placeholder="Search by name..."
+                 autofocus>
+          <button type="submit">🔍 Search</button>
+        </div>
+      </form>
+    </div>
+
+    {% if query %}
+
+    <!-- PATIENTS RESULTS -->
+    <div class="dash-card full-width">
+      <h2>👤 Patients — {{ patients|length }} result(s) for "{{ query }}"</h2>
+      {% if patients %}
+        <table class="appt-table">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th>Appointments</th>
+            <th>Action</th>
+          </tr>
+          {% for p in patients %}
+            <tr>
+              <td>{{ p.id }}</td>
+              <td>{{ p.name }}</td>
+              <td>{{ p.email }}</td>
+              <td>{{ p.age or '—' }}</td>
+              <td>{{ p.phone or '—' }}</td>
+              <td>{{ p.appointments|length }}</td>
+              <td>
+                <a href="/admin/delete_patient/{{ p.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Delete this patient?')">
+                   🗑️ Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No patients found for "{{ query }}"</p>
+      {% endif %}
+    </div>
+
+    <!-- DOCTORS RESULTS -->
+    <div class="dash-card full-width">
+      <h2>🩺 Doctors — {{ doctors|length }} result(s) for "{{ query }}"</h2>
+      {% if doctors %}
+        <table class="appt-table">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Specialization</th>
+            <th>Appointments</th>
+            <th>Action</th>
+          </tr>
+          {% for d in doctors %}
+            <tr>
+              <td>{{ d.id }}</td>
+              <td>Dr. {{ d.name }}</td>
+              <td>{{ d.email }}</td>
+              <td>{{ d.specialization or '—' }}</td>
+              <td>{{ d.appointments|length }}</td>
+              <td>
+                <a href="/admin/delete_doctor/{{ d.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Delete this doctor?')">
+                   🗑️ Delete
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No doctors found for "{{ query }}"</p>
+      {% endif %}
+    </div>
+
+    {% else %}
+      <div class="dash-card full-width">
+        <p class="empty" style="text-align:center; padding: 40px;">
+          🔍 Type a name above to search for patients or doctors
+        </p>
+      </div>
+    {% endif %}
+
+  </div>
+</body>
+</html>

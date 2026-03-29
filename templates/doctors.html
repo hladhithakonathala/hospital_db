@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Doctors | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="home-body">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/doctors">Doctors</a>
+      <a href="/admin/login" class="admin-link">🛡️ Admin</a>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <section class="doctors-header">
+    <div class="badge-pill">🩺 Meet Our Experts</div>
+    <h1>Our <span>Doctors</span></h1>
+    <p>World-class specialists dedicated to your health and wellbeing</p>
+  </section>
+
+  <!-- DOCTORS GRID -->
+  <section class="doctors-section">
+    {% if doctors %}
+      <div class="doctors-grid">
+        {% for doc in doctors %}
+          <div class="doctor-card">
+            <div class="doctor-avatar">
+              {{ doc.name[0].upper() }}
+            </div>
+            <h3>Dr. {{ doc.name }}</h3>
+            <p class="doctor-spec">{{ doc.specialization or 'General Physician' }}</p>
+            <p class="doctor-email">📧 {{ doc.email }}</p>
+            <div class="doctor-available">
+              {% if doc.available_dates %}
+                <p class="available-title">✅ Available Dates:</p>
+                <div class="dates-list">
+                  {% for d in doc.available_dates %}
+                    <span class="date-badge">{{ d.date }}</span>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="no-dates">📅 No available dates yet</p>
+              {% endif %}
+            </div>
+            <a href="/login/patient" class="book-btn">Book Appointment</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-doctors">
+        <p>🩺 No doctors registered yet.</p>
+        <p>Please check back soon!</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2024 GVP Care. All rights reserved. | Made with ❤️ for better healthcare</p>
+  </footer>
+
+</body>
+</html>

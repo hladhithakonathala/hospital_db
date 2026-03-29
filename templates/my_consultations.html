@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Consultations | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      <a href="/patient/dashboard">← Back to Dashboard</a>
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="dash-container">
+
+    <div class="dash-card full-width">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <h2>🖥️ My Online Consultations</h2>
+        <a href="/consultation/request" class="consult-submit-btn" style="text-decoration:none;">
+          ➕ New Consultation
+        </a>
+      </div>
+      <br>
+      {% if consultations %}
+        <div class="consult-cards">
+          {% for c in consultations %}
+            <div class="consult-card">
+              <div class="consult-card-header">
+                <div class="consult-doc-avatar">
+                  {{ c.doctor.name[0].upper() }}
+                </div>
+                <div class="consult-card-info">
+                  <h3>Dr. {{ c.doctor.name }}</h3>
+                  <p>🩺 {{ c.doctor.specialization }}</p>
+                </div>
+                <span class="badge {{ c.status.lower() }}">{{ c.status }}</span>
+              </div>
+              <div class="consult-card-body">
+                <div class="consult-detail">
+                  <span>📅</span>
+                  <p>{{ c.date }} at {{ c.time }}</p>
+                </div>
+                <div class="consult-detail">
+                  <span>📝</span>
+                  <p>{{ c.reason }}</p>
+                </div>
+                {% if c.meet_link %}
+                  <div class="consult-detail">
+                    <span>🔗</span>
+                    <a href="{{ c.meet_link }}" target="_blank"
+                       class="meet-link-btn">
+                       🎥 Join Video Call
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="consult-card-footer">
+                {% if c.status == 'Pending' %}
+                  <a href="/consultation/cancel/{{ c.id }}"
+                     class="btn-cancel"
+                     onclick="return confirm('Cancel this consultation?')">
+                     ❌ Cancel
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="consult-empty">
+          <p>🖥️ No consultations yet.</p>
+          <a href="/consultation/request" class="consult-submit-btn"
+             style="text-decoration:none; display:inline-block; margin-top:16px;">
+            Request Your First Consultation
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

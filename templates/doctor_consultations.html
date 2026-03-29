@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Consultations | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      <a href="/doctor/dashboard">← Back to Dashboard</a>
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="dash-container">
+
+    <div class="dash-card full-width">
+      <h2>🖥️ Online Consultation Requests</h2>
+      <br>
+      {% if consultations %}
+        <div class="consult-cards">
+          {% for c in consultations %}
+            <div class="consult-card">
+              <div class="consult-card-header">
+                <div class="consult-doc-avatar" style="background: linear-gradient(135deg,#e63946,#ff6b6b);">
+                  {{ c.patient.name[0].upper() }}
+                </div>
+                <div class="consult-card-info">
+                  <h3>{{ c.patient.name }}</h3>
+                  <p>👤 Patient &nbsp;|&nbsp; 🎂 Age: {{ c.patient.age or '—' }}</p>
+                </div>
+                <span class="badge {{ c.status.lower() }}">{{ c.status }}</span>
+              </div>
+
+              <div class="consult-card-body">
+                <div class="consult-detail">
+                  <span>📅</span>
+                  <p>{{ c.date }} at {{ c.time }}</p>
+                </div>
+                <div class="consult-detail">
+                  <span>📝</span>
+                  <p>{{ c.reason }}</p>
+                </div>
+                <div class="consult-detail">
+                  <span>📞</span>
+                  <p>{{ c.patient.phone or 'No phone' }}</p>
+                </div>
+                {% if c.meet_link %}
+                  <div class="consult-detail">
+                    <span>🔗</span>
+                    <a href="{{ c.meet_link }}" target="_blank"
+                       class="meet-link-btn">
+                       🎥 Join Video Call
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+
+              {% if c.status == 'Pending' %}
+              <div class="consult-card-footer">
+                <form method="POST" action="/consultation/update/{{ c.id }}"
+                      class="consult-update-form">
+                  <input type="text" name="meet_link"
+                         placeholder="Paste Google Meet / Zoom link here"
+                         value="{{ c.meet_link or '' }}">
+                  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button type="submit" name="status" value="Confirmed"
+                            class="btn-confirm">
+                      ✅ Confirm & Send Link
+                    </button>
+                    <button type="submit" name="status" value="Cancelled"
+                            class="btn-cancel">
+                      ❌ Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+              {% endif %}
+
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="consult-empty">
+          <p>🖥️ No consultation requests yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

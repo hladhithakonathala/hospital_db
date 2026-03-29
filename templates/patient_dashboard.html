@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>Welcome, {{ patient.name }} &nbsp;|&nbsp; <a href="/patient/profile">👤 My Profile</a> &nbsp;|&nbsp; <a href="/patient/medical_history">📝 Medical History</a> &nbsp;|&nbsp; <a href="/patient/feedback">⭐ My Reviews</a> &nbsp;|&nbsp; <a href="/change_password">🔒 Change Password</a> &nbsp;|&nbsp; <a href="/logout">Logout</a></div>
+  </nav>
+
+  <div class="dash-container">
+    <div class="dash-card">
+      <h2>📅 Book an Appointment</h2>
+      <form method="POST" action="/book_appointment">
+        <select name="doctor_id" required>
+          <option value="">-- Select Doctor --</option>
+          {% for doc in doctors %}
+            <option value="{{ doc.id }}">Dr. {{ doc.name }} — {{ doc.specialization }}</option>
+          {% endfor %}
+        </select>
+        <input type="date" name="date" required>
+        <button type="submit">Book Now</button>
+      </form>
+      <br>
+<h3 style="color:#003366; margin-bottom:12px;">💬 Chat with a Doctor</h3>
+<div class="chat-links">
+  {% for doc in doctors %}
+    <a href="/chat/{{ doc.id }}" class="chat-doctor-btn">
+      <div class="chat-doc-avatar">{{ doc.name[0].upper() }}</div>
+      <div>
+        <h4>Dr. {{ doc.name }}</h4>
+        <p>{{ doc.specialization }}</p>
+      </div>
+      <span>💬</span>
+    </a>
+  {% endfor %}
+</div>
+    </div>
+
+    <div class="dash-card">
+      <h2>📋 My Appointments</h2>
+      {% if appointments %}
+        <table class="appt-table">
+          <tr><th>Doctor</th><th>Specialization</th><th>Date</th><th>Status</th></tr>
+          {% for a in appointments %}
+            <tr>
+              <td>Dr. {{ a.doctor.name }}</td>
+              <td>{{ a.doctor.specialization }}</td>
+              <td>{{ a.date }}</td>
+              <td><span class="badge {{ a.status.lower() }}">{{ a.status }}</span></td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No appointments yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html

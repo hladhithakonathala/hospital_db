@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Feedback | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      <a href="/patient/dashboard">← Back to Dashboard</a>
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="dash-container">
+
+    <!-- ADD FEEDBACK -->
+    <div class="dash-card full-width">
+      <h2>⭐ Rate & Review a Doctor</h2>
+      <form method="POST" class="feedback-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>🩺 Select Doctor</label>
+            <select name="doctor_id" required>
+              <option value="">-- Select Doctor --</option>
+              {% for doc in doctors %}
+                <option value="{{ doc.id }}">
+                  Dr. {{ doc.name }} — {{ doc.specialization }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>⭐ Rating</label>
+            <div class="star-rating">
+              <input type="radio" name="rating" value="5" id="s5">
+              <label for="s5">★</label>
+              <input type="radio" name="rating" value="4" id="s4">
+              <label for="s4">★</label>
+              <input type="radio" name="rating" value="3" id="s3">
+              <label for="s3">★</label>
+              <input type="radio" name="rating" value="2" id="s2">
+              <label for="s2">★</label>
+              <input type="radio" name="rating" value="1" id="s1">
+              <label for="s1">★</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label>💬 Your Review</label>
+          <textarea name="comment"
+                    placeholder="Share your experience with this doctor..."
+                    rows="4" required></textarea>
+        </div>
+        <button type="submit">⭐ Submit Feedback</button>
+      </form>
+    </div>
+
+    <!-- MY FEEDBACKS -->
+    <div class="dash-card full-width">
+      <h2>📋 My Reviews</h2>
+      {% if feedbacks %}
+        <div class="feedback-list">
+          {% for f in feedbacks %}
+            <div class="feedback-card">
+              <div class="feedback-header">
+                <div>
+                  <h3>Dr. {{ f.doctor.name }}</h3>
+                  <p class="feedback-spec">{{ f.doctor.specialization }}</p>
+                </div>
+                <div class="feedback-right">
+                  <div class="stars-display">
+                    {% for i in range(f.rating) %}⭐{% endfor %}
+                  </div>
+                  <p class="feedback-date">{{ f.date }}</p>
+                  <a href="/patient/delete_feedback/{{ f.id }}"
+                     class="btn-cancel"
+                     onclick="return confirm('Delete this review?')">
+                     🗑️
+                  </a>
+                </div>
+              </div>
+              <p class="feedback-comment">"{{ f.comment }}"</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">You haven't reviewed any doctors yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

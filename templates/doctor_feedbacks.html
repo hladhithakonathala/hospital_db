@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reviews | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      <a href="/doctor/dashboard">← Back to Dashboard</a>
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="dash-container">
+
+    <!-- RATING SUMMARY -->
+    <div class="dash-card full-width">
+      <div class="rating-summary">
+        <div class="rating-big">
+          <h1>{{ avg_rating }}</h1>
+          <div class="stars-display big-stars">
+            {% for i in range(avg_rating|int) %}⭐{% endfor %}
+          </div>
+          <p>Average Rating</p>
+        </div>
+        <div class="rating-breakdown">
+          {% for i in range(5, 0, -1) %}
+            {% set count = feedbacks|selectattr('rating', 'equalto', i)|list|length %}
+            {% set percent = (count / feedbacks|length * 100)|int if feedbacks else 0 %}
+            <div class="rating-bar-row">
+              <span class="rating-label">{{ i }}⭐</span>
+              <div class="rating-bar">
+                <div class="rating-fill" style="width: {{ percent }}%"></div>
+              </div>
+              <span class="rating-count">{{ count }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="rating-stats">
+          <div class="rating-stat">
+            <h3>{{ feedbacks|length }}</h3>
+            <p>Total Reviews</p>
+          </div>
+          <div class="rating-stat">
+            <h3>{{ avg_rating }}</h3>
+            <p>Average Score</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK LIST -->
+    <div class="dash-card full-width">
+      <h2>💬 Patient Reviews</h2>
+      {% if feedbacks %}
+        <div class="feedback-list">
+          {% for f in feedbacks %}
+            <div class="feedback-card">
+              <div class="feedback-header">
+                <div class="feedback-patient">
+                  <div class="feedback-avatar">
+                    {{ f.patient.name[0].upper() }}
+                  </div>
+                  <div>
+                    <h3>{{ f.patient.name }}</h3>
+                    <p class="feedback-date">{{ f.date }}</p>
+                  </div>
+                </div>
+                <div class="stars-display">
+                  {% for i in range(f.rating) %}⭐{% endfor %}
+                </div>
+              </div>
+              <p class="feedback-comment">"{{ f.comment }}"</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No reviews yet. Keep up the great work! 🌟</p>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body class="dash-body">
+
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+    <div>
+      {% if session['user_role'] == 'patient' %}
+        <a href="/patient/dashboard">← Back to Dashboard</a>
+      {% else %}
+        <a href="/doctor/dashboard">← Back to Dashboard</a>
+      {% endif %}
+      &nbsp;|&nbsp;
+      <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="chat-wrapper">
+
+    <div class="chat-header">
+      <div class="chat-header-avatar">
+        {% if session['user_role'] == 'patient' %}
+          {{ doctor.name[0].upper() }}
+        {% else %}
+          {{ patient.name[0].upper() }}
+        {% endif %}
+      </div>
+      <div class="chat-header-info">
+        {% if session['user_role'] == 'patient' %}
+          <h3>Dr. {{ doctor.name }}</h3>
+          <p>🩺 {{ doctor.specialization }}</p>
+        {% else %}
+          <h3>{{ patient.name }}</h3>
+          <p>👤 Patient</p>
+        {% endif %}
+      </div>
+      <div class="chat-status">
+        <span class="status-dot"></span> Online
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="chat-bubble {{ 'sent' if msg.sender_role == session['user_role'] else 'received' }}">
+            <div class="bubble-name">{{ msg.sender_name }}</div>
+            <div class="bubble-text">{{ msg.message }}</div>
+            <div class="bubble-time">{{ msg.timestamp }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="chat-empty">
+          <p>💬 No messages yet. Say hello!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="chat-input-bar">
+      <input type="text" id="messageInput"
+             placeholder="Type a message..."
+             autocomplete="off">
+      <button onclick="sendMessage()">Send ➤</button>
+    </div>
+
+  </div>
+
+  <script>
+    const socket     = io();
+    const room       = "{{ room }}";
+    const senderName = "{{ session['user_name'] }}";
+    const senderRole = "{{ session['user_role'] }}";
+    const senderId   = {{ session['user_id'] }};
+
+    socket.emit('join', { room: room });
+
+    function scrollToBottom() {
+      const box = document.getElementById('chatMessages');
+      box.scrollTop = box.scrollHeight;
+    }
+    scrollToBottom();
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const msg   = input.value.trim();
+      if (!msg) return;
+      socket.emit('send_message', {
+        room:        room,
+        sender_id:   senderId,
+        sender_name: senderName,
+        sender_role: senderRole,
+        message:     msg
+      });
+      input.value = '';
+    }
+
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    socket.on('receive_message', function(data) {
+      const box   = document.getElementById('chatMessages');
+      const empty = box.querySelector('.chat-empty');
+      if (empty) empty.remove();
+
+      const bubble     = document.createElement('div');
+      bubble.className = 'chat-bubble ' + (data.sender_role === senderRole ? 'sent' : 'received');
+      bubble.innerHTML = `
+        <div class="bubble-name">${data.sender_name}</div>
+        <div class="bubble-text">${data.message}</div>
+        <div class="bubble-time">${data.timestamp}</div>
+      `;
+      box.appendChild(bubble);
+      scrollToBottom();
+    });
+  </script>
+
+</body>
+</html>

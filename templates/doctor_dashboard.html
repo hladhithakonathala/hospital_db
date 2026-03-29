@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard | GVP Care</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+</head>
+<body class="dash-body">
+  <nav class="dash-nav">
+    <div class="logo">🏥 GVP<span>Care</span></div>
+  <div>Dr. {{ doctor.name }} — {{ doctor.specialization }} &nbsp;|&nbsp; <a href="/doctor/feedbacks">⭐ My Reviews</a> &nbsp;|&nbsp; <a href="/change_password">🔒 Change Password</a> &nbsp;|&nbsp; <a href="/logout">Logout</a></div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert {{ cat }}" style="margin: 20px 60px;">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="dash-container">
+
+    <!-- CALENDAR -->
+    <div class="dash-card full-width">
+      <h2>📅 Appointments Calendar</h2>
+      <div id="calendar"></div>
+    </div>
+
+    <!-- AVAILABLE DATES -->
+    <div class="dash-card">
+      <h2>✅ My Available Dates</h2>
+      <form method="POST" action="/doctor/add_available_date">
+        <input type="date" name="date" required>
+        <button type="submit">➕ Add Date</button>
+      </form>
+      <br>
+      {% if available_dates %}
+        <table class="appt-table">
+          <tr>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+          {% for d in available_dates %}
+            <tr>
+              <td>{{ d.date }}</td>
+              <td>
+                <a href="/doctor/delete_available_date/{{ d.id }}"
+                   class="btn-cancel"
+                   onclick="return confirm('Remove this date?')">
+                   🗑️ Remove
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No available dates added yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- APPOINTMENTS TABLE -->
+    <div class="dash-card">
+      <h2>🗓️ My Patient Appointments</h2>
+      {% if appointments %}
+        <table class="appt-table">
+          <tr>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          {% for a in appointments %}
+            <tr>
+            <td>
+  <a href="/doctor/patient_history/{{ a.patient.id }}" class="patient-link">{{ a.patient.name }}</a>
+  &nbsp;
+  <a href="/chat/{{ doctor.id }}?patient_id={{ a.patient.id }}" class="btn-confirm">💬 Chat</a>
+</td>
+              <td>{{ a.date }}</td>
+              <td><span class="badge {{ a.status.lower() }}">{{ a.status }}</span></td>
+              <td>
+                {% if a.status == 'Pending' %}
+                  <a href="/update_appointment/{{ a.id }}/confirm" class="btn-confirm">✅</a>
+                  <a href="/update_appointment/{{ a.id }}/cancel"  class="btn-cancel">❌</a>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p class="empty">No appointments scheduled yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left:   'prev,next today',
+          center: 'title',
+          right:  'dayGridMonth,timeGridWeek'
+        },
+        events: '/api/appointments',
+        eventDisplay: 'block',
+        height: 'auto'
+      });
+      calendar.render();
+    });
+  </script>
+
+</body>
+</html>
